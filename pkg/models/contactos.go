@@ -5,10 +5,12 @@ import (
 )
 
 type Contacto struct {
-	gorm.Model        // Esto añade ID, CreatedAt, UpdatedAt, DeletedAt automáticamente
+	gorm.Model
 	Nombre       string `gorm:"size:255;not null"`
-	Email        string `gorm:"uniqueIndex"`
-	Telefono     string
-	TipoContacto string // 'Abogacía', 'Biomédica', etc.
-	Metadata     string `gorm:"type:jsonb"` // Aquí guardaremos los datos extra
+	Email        string `gorm:"size:255"`
+	Telefono     string `gorm:"size:50"`
+	TipoRelacion string `gorm:"size:50"` // Cliente, Contraparte, etc.
+	Expediente   string `gorm:"size:100"`
+	Juzgado      string `gorm:"size:255"`
+	Notas        string `gorm:"type:text"`
 }
