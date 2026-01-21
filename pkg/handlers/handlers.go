@@ -195,6 +195,29 @@ func (m *Repository) PostNuevoFamiliar(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/expediente/"+idStr, http.StatusSeeOther)
 }
 
+func (m *Repository) PostEditarFamiliar(w http.ResponseWriter, r *http.Request) {
+    contactoID := chi.URLParam(r, "id")
+    familiarID := chi.URLParam(r, "familiarID")
+
+    r.ParseForm()
+    m.DB.Model(&models.Familiar{}).Where("id = ?", familiarID).Updates(models.Familiar{
+        Nombre:     r.Form.Get("nombre"),
+        Parentesco: r.Form.Get("parentesco"),
+        Telefono:   r.Form.Get("telefono"),
+    })
+
+    http.Redirect(w, r, "/expediente/"+contactoID, http.StatusSeeOther)
+}
+
+func (m *Repository) EliminarFamiliar(w http.ResponseWriter, r *http.Request) {
+    contactoID := chi.URLParam(r, "id")
+    familiarID := chi.URLParam(r, "familiarID")
+
+    m.DB.Delete(&models.Familiar{}, familiarID)
+
+    http.Redirect(w, r, "/expediente/"+contactoID, http.StatusSeeOther)
+}
+
 func (m *Repository) PostNuevoCobro(w http.ResponseWriter, r *http.Request) {
     idStr := chi.URLParam(r, "id")
     contactoID, _ := strconv.Atoi(idStr)

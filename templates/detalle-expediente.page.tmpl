@@ -57,13 +57,25 @@
                 </div>
                 <div class="space-y-3">
                     {{range $res.Familiares}}
-                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100 group">
                         <div>
                             <p class="font-bold text-gray-800 text-sm">{{.Nombre}}</p>
                             <p class="text-xs text-indigo-600 font-medium">{{.Parentesco}}</p>
-                        </div>
-                        <div class="text-right">
                             <p class="text-xs text-gray-500 font-mono">{{.Telefono}}</p>
+                        </div>
+                        <div class="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="prepararEdicionFamiliar(this)"
+                                    data-id="{{.ID}}"
+                                    data-nombre="{{.Nombre}}"
+                                    data-parentesco="{{.Parentesco}}"
+                                    data-telefono="{{.Telefono}}"
+                                    class="text-blue-500 hover:text-blue-700 p-1">
+                                ✏️
+                            </button>
+                            <button onclick="confirmarEliminarFamiliar('{{.ID}}', '{{$res.ID}}')" 
+                                    class="text-red-500 hover:text-red-700 p-1">
+                                🗑️
+                            </button>
                         </div>
                     </div>
                     {{else}}
@@ -257,6 +269,17 @@ function prepararEdicionCobro(el) {
     toggleModalCobro();
 }
 
+function toggleModal() {
+    const modal = document.getElementById('modalFamiliar');
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    } else {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+}
+
 // Opcional: Limpiar el modal cuando se cierra para que si le da a "Nuevo" no aparezcan datos viejos
 function limpiarModalCobro() {
     const modal = document.getElementById('modalCobro');
@@ -284,17 +307,6 @@ function confirmarEliminarCobro(cobroID, contactoID) {
     })
 }
 
-function toggleModal() {
-    const modal = document.getElementById('modalFamiliar');
-    if (modal.classList.contains('hidden')) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    } else {
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
-    }
-}
-
 function toggleModalCobro() {
     const modal = document.getElementById('modalCobro');
     if (modal.classList.contains('hidden')) {
@@ -305,6 +317,51 @@ function toggleModalCobro() {
         modal.classList.add('hidden');
     }
 }
-</script>
 
+function prepararEdicionFamiliar(el) {
+    const id = el.getAttribute('data-id');
+    const nombre = el.getAttribute('data-nombre');
+    const parentesco = el.getAttribute('data-parentesco');
+    const telefono = el.getAttribute('data-telefono');
+
+    const modal = document.getElementById('modalFamiliar');
+    modal.querySelector('h3').innerText = "Editar Familiar";
+    
+    // Llenar campos
+    modal.querySelector('input[name="nombre"]').value = nombre;
+    modal.querySelector('select[name="parentesco"]').value = parentesco;
+    modal.querySelector('input[name="telefono"]').value = telefono;
+
+    // Cambiar action a la ruta de editar
+    const contactoID = '{{$res.ID}}';
+    modal.querySelector('form').action = "/expediente/" + contactoID + "/familiar/" + id + "/editar";
+
+    toggleModal();
+}
+
+function confirmarEliminarFamiliar(familiarID, contactoID) {
+    Swal.fire({
+        title: '¿Eliminar familiar?',
+        text: "Esta acción quitará el contacto de la lista del expediente.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "/expediente/" + contactoID + "/familiar/" + familiarID + "/eliminar";
+        }
+    })
+}
+
+function limpiarModalFamiliar() {
+    const modal = document.getElementById('modalFamiliar');
+    modal.querySelector('h3').innerText = "Agregar Familiar";
+    modal.querySelector('form').reset();
+    modal.querySelector('form').action = "/expediente/{{$res.ID}}/familiar";
+}
+
+
+</script>
 {{end}}
