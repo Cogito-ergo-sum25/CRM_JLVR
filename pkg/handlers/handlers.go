@@ -35,20 +35,32 @@ func NewHandlers(r *Repository) {
 // Home es el handler para la página de inicio que lista los expedientes
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
 	var contactos []models.Contacto
+	var nominas []models.Nomina
 
-	// Consultar todos los contactos de la base de datos usando GORM
-	result := m.DB.Find(&contactos)
-	if result.Error != nil {
-		log.Println("Error al recuperar contactos:", result.Error)
-		http.Error(w, "Error al cargar los expedientes", http.StatusInternalServerError)
-		return
+	// 1. Obtener datos básicos
+	m.DB.Find(&contactos)
+	m.DB.Find(&nominas)
+
+	// 2. Calcular total de dinero cobrado
+	var totalDinero float64
+	for _, n := range nominas {
+		totalDinero += n.Cantidad
 	}
 
-	// Preparar los datos para el template
-	data := make(map[string]interface{})
-	data["contactos"] = contactos
+	// 3. Lógica para Próximos Cumpleaños (Mes actual)
+	var cumpleaneros []models.Contacto
+	mesActual := time.Now().Month()
+	m.DB.Where("EXTRACT(MONTH FROM fecha_cumpleanios) = ?", mesActual).
+		Order("EXTRACT(DAY FROM fecha_cumpleanios) ASC").
+		Limit(5).
+		Find(&cumpleaneros)
 
-	// Renderizar la página de inicio pasando los datos
+	// Enviamos todo al template
+	data := make(map[string]interface{})
+	data["totalContactos"] = len(contactos)
+	data["totalDinero"] = totalDinero
+	data["cumpleaneros"] = cumpleaneros
+
 	render.RenderTemplate(w, "home.page.tmpl", &models.TemplateData{
 		Data: data,
 	})

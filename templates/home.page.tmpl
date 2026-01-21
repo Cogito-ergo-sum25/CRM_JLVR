@@ -1,67 +1,92 @@
 {{template "base" .}}
 
 {{define "content"}}
-<div class="flex justify-between items-center mb-6">
-    <h2 class="text-xl md:text-2xl font-bold text-gray-800">Expedientes Legales</h2>
-    <a href="/nuevo-contacto" class="bg-indigo-600 text-white px-3 py-2 rounded-md hover:bg-indigo-700 transition text-sm md:text-base">
-        + <span class="hidden md:inline">Nuevo Registro</span><span class="md:hidden">Nuevo</span>
-    </a>
-</div>
+{{$totalC := index .Data "totalContactos"}}
+{{$totalD := index .Data "totalDinero"}}
+{{$cumples := index .Data "cumpleaneros"}}
 
-<div class="grid grid-cols-1 gap-4 md:hidden">
-    {{range .Data.contactos}}
-    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-indigo-500">
-        <div class="flex justify-between items-start mb-2">
-            <span class="text-xs font-bold uppercase text-gray-400">Exp: {{.Expediente}}</span>
-            <span class="px-2 py-1 text-xs font-semibold text-indigo-700 bg-indigo-100 rounded-full">
-                {{.TipoRelacion}}
-            </span>
+<div class="max-w-6xl mx-auto">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Resumen del Despacho</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-indigo-500">
+            <p class="text-sm text-gray-500 font-bold uppercase">Expedientes Totales</p>
+            <p class="text-3xl font-black text-gray-800">{{$totalC}}</p>
         </div>
-        <h3 class="font-bold text-gray-900">{{.Nombre}}</h3>
-        <p class="text-sm text-gray-600">{{.Email}}</p>
-        <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
-            <span class="text-sm text-gray-700"><strong>Sede:</strong> {{.Juzgado}}</span>
-            <button class="text-indigo-600 text-sm font-medium">Ver detalles</button>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-emerald-500">
+            <p class="text-sm text-gray-500 font-bold uppercase">Recaudación Total</p>
+            <p class="text-3xl font-black text-emerald-600">${{$totalD}}</p>
+        </div>
+
+        <div class="bg-indigo-600 p-6 rounded-2xl shadow-lg text-white flex items-center justify-between">
+            <div>
+                <p class="font-bold">¿Nuevo Cliente?</p>
+                <a href="/nuevo-contacto" class="text-xs underline opacity-80 hover:opacity-100">Registrar ahora →</a>
+            </div>
+            <span class="text-4xl">📝</span>
         </div>
     </div>
-    {{else}}
-    <p class="text-center text-gray-500 italic">No hay expedientes registrados.</p>
-    {{end}}
-</div>
 
-<div class="hidden md:block bg-white shadow-md rounded-lg overflow-hidden">
-    <table class="min-w-full leading-normal">
-        <thead>
-            <tr class="bg-gray-800 text-white">
-                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Expediente</th>
-                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Nombre / Cliente</th>
-                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Relación</th>
-                <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Juzgado</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .Data.contactos}}
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                    <p class="font-bold text-indigo-600">{{.Expediente}}</p>
-                </td>
-                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                    <a href="/expediente/{{.ID}}" class="text-indigo-600 hover:text-indigo-900 font-bold underline">
-                        {{.Nombre}}
-                    </a>
-                    <p class="text-gray-500 text-xs">{{.Email}}</p>
-                </td>
-                <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                    <span class="px-3 py-1 font-semibold text-indigo-900 bg-indigo-100 rounded-full text-xs">
-                        {{.TipoRelacion}}
-                    </span>
-                </td>
-                <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                    {{.Juzgado}}
-                </td>
-            </tr>
-            {{end}}
-        </tbody>
-    </table>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-gray-700 flex items-center">
+                    <span class="mr-2">🎂</span> Cumpleaños del Mes
+                </h3>
+                <span class="text-[10px] bg-pink-100 text-pink-600 px-2 py-1 rounded-full font-bold uppercase">Atención</span>
+            </div>
+            
+            <div class="space-y-4">
+                {{range $cumples}}
+                <div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center font-bold mr-3 text-sm">
+                            {{if .Nombre}}
+                                {{slice .Nombre 0 1}}
+                            {{else}}
+                                ?
+                            {{end}}
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-800">{{.Nombre}}</p>
+                            <p class="text-xs text-gray-500">
+                                {{if .FechaCumpleanios}}
+                                    Celebra el {{.FechaCumpleanios.Format "02 de January"}}
+                                {{end}}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {{else}}
+                <p class="text-sm text-gray-400 italic text-center py-8">No hay cumpleaños este mes.</p>
+                {{end}}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <h3 class="font-bold text-gray-700 mb-4 flex items-center">
+                <span class="mr-2">🚀</span> Acciones Frecuentes
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <a href="/contactos" class="p-4 bg-gray-50 rounded-xl hover:bg-indigo-50 transition border border-gray-100 text-center">
+                    <p class="text-2xl mb-1">📇</p>
+                    <p class="text-xs font-bold text-gray-600">Ver Directorio</p>
+                </a>
+                <a href="/calendario" class="p-4 bg-gray-50 rounded-xl hover:bg-pink-50 transition border border-gray-100 text-center">
+                    <p class="text-2xl mb-1">📅</p>
+                    <p class="text-xs font-bold text-gray-600">Ver Agenda</p>
+                </a>
+                <a href="/reportes" class="p-4 bg-gray-50 rounded-xl hover:bg-emerald-50 transition border border-gray-100 text-center opacity-50 cursor-not-allowed">
+                    <p class="text-2xl mb-1">📊</p>
+                    <p class="text-xs font-bold text-gray-600">Reportes (Próximamente)</p>
+                </a>
+                <a href="/ajustes" class="p-4 bg-gray-50 rounded-xl hover:bg-gray-200 transition border border-gray-100 text-center opacity-50 cursor-not-allowed">
+                    <p class="text-2xl mb-1">⚙️</p>
+                    <p class="text-xs font-bold text-gray-600">Ajustes</p>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 {{end}}
