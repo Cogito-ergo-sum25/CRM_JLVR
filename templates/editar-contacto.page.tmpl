@@ -3,12 +3,25 @@
 {{define "content"}}
 {{$res := index .Data "contacto"}}
 <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg border-t-4 border-yellow-500">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Editar Expediente: {{$res.Nombre}}</h2>
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Editar Expediente: {{$res.Nombre}}</h2>
+        <span class="text-xs font-mono text-gray-400 underline">ID: {{$res.ID}}</span>
+    </div>
     
     <form action="/expediente/{{$res.ID}}/editar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2">
             <label class="block text-sm font-semibold text-gray-700">Nombre Completo</label>
-            <input type="text" name="nombre" value="{{$res.Nombre}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required>
+            <input type="text" name="nombre" value="{{$res.Nombre}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-yellow-500 focus:border-yellow-500" required>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Correo Electrónico</label>
+            <input type="email" name="email" value="{{$res.Email}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Teléfono</label>
+            <input type="text" name="telefono" value="{{$res.Telefono}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
         </div>
 
         <div>
@@ -17,8 +30,18 @@
         </div>
 
         <div>
-            <label class="block text-sm font-semibold text-gray-700">Teléfono</label>
-            <input type="text" name="telefono" value="{{$res.Telefono}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+            <label class="block text-sm font-semibold text-gray-700">Juzgado / Instancia</label>
+            <input type="text" name="juzgado" value="{{$res.Juzgado}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Tipo de Relación</label>
+            <select name="tipo_relacion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                <option value="Cliente" {{if eq $res.TipoRelacion "Cliente"}}selected{{end}}>Cliente</option>
+                <option value="Contraparte" {{if eq $res.TipoRelacion "Contraparte"}}selected{{end}}>Contraparte</option>
+                <option value="Abogado Contrario" {{if eq $res.TipoRelacion "Abogado Contrario"}}selected{{end}}>Abogado Contrario</option>
+                <option value="Autoridad" {{if eq $res.TipoRelacion "Autoridad"}}selected{{end}}>Autoridad / Juzgado</option>
+            </select>
         </div>
 
         <div>
@@ -28,20 +51,22 @@
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
         </div>
 
-        <div>
+        <div class="md:col-span-2">
             <label class="block text-sm font-semibold text-gray-700">Recomendado por</label>
             <input type="text" name="recomendado_por" value="{{$res.RecomendadoPor}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
         </div>
 
         <div class="md:col-span-2">
-            <label class="block text-sm font-semibold text-gray-700">Notas</label>
+            <label class="block text-sm font-semibold text-gray-700">Notas y Estrategia</label>
             <textarea name="notas" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">{{$res.Notas}}</textarea>
         </div>
 
-        <div class="md:col-span-2 flex justify-end space-x-3">
-            <a href="/expediente/{{$res.ID}}" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</a>
-            <button type="submit" class="bg-yellow-600 text-white font-bold py-2 px-6 rounded shadow-md hover:bg-yellow-700">
-                Guardar Cambios
+        <div class="md:col-span-2 flex justify-end space-x-3 pt-4 border-t border-gray-100">
+            <a href="/expediente/{{$res.ID}}" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-bold hover:bg-gray-200 transition text-center">
+                Cancelar
+            </a>
+            <button type="submit" class="bg-yellow-600 text-white font-bold py-2 px-8 rounded-lg shadow-md hover:bg-yellow-700 transition">
+                Actualizar Expediente
             </button>
         </div>
     </form>

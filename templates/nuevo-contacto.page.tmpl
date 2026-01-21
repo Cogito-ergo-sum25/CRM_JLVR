@@ -14,12 +14,12 @@
 
         <div>
             <label class="block text-sm font-semibold text-gray-700">Número de Expediente</label>
-            <input type="text" name="expediente" placeholder="Ej: 123/2025" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+            <input type="text" name="expediente" placeholder="Ej: 123/2025" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
         </div>
 
         <div>
             <label class="block text-sm font-semibold text-gray-700">Tipo de Relación</label>
-            <select name="tipo_relacion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+            <select name="tipo_relacion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
                 <option value="Cliente">Cliente</option>
                 <option value="Contraparte">Contraparte</option>
                 <option value="Abogado Contrario">Abogado Contrario</option>
@@ -29,22 +29,32 @@
 
         <div>
             <label class="block text-sm font-semibold text-gray-700">Teléfono</label>
-            <input type="text" name="telefono" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+            <input type="text" name="telefono" placeholder="Ej: 55 1234 5678" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
         </div>
 
         <div>
             <label class="block text-sm font-semibold text-gray-700">Correo Electrónico</label>
-            <input type="email" name="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+            <input type="email" name="email" placeholder="ejemplo@correo.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
         </div>
 
-        <div class="md:col-span-2">
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Fecha de Cumpleaños</label>
+            <input type="date" name="fecha_cumpleanios" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
             <label class="block text-sm font-semibold text-gray-700">Juzgado / Instancia</label>
-            <input type="text" name="juzgado" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+            <input type="text" name="juzgado" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
         </div>
 
         <div class="md:col-span-2">
-            <label class="block text-sm font-semibold text-gray-700">Notas y Observaciones</label>
-            <textarea name="notas" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"></textarea>
+            <label class="block text-sm font-semibold text-gray-700">Recomendado por</label>
+            <input type="text" name="recomendado_por" placeholder="¿Quién refirió al cliente?" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700">Notas y Estrategia Inicial</label>
+            <textarea name="notas" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
         </div>
 
         <div class="md:col-span-2">

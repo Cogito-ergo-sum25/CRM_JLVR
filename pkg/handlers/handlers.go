@@ -61,19 +61,38 @@ func (m *Repository) NuevoContacto(w http.ResponseWriter, r *http.Request) {
 
 // PostNuevoContacto procesa el formulario y guarda en Postgres
 func (m *Repository) PostNuevoContacto(w http.ResponseWriter, r *http.Request) {
-    r.ParseForm()
-    
-    contacto := models.Contacto{
-        Nombre:       r.Form.Get("nombre"),
-        Email:        r.Form.Get("email"),
-        Telefono:     r.Form.Get("telefono"),
-        TipoRelacion: r.Form.Get("tipo_relacion"),
-        Expediente:   r.Form.Get("expediente"),
-        Juzgado:      r.Form.Get("juzgado"),
-        Notas:        r.Form.Get("notas"),
+    err := r.ParseForm()
+    if err != nil {
+        log.Println(err)
+        return
     }
 
-    m.DB.Create(&contacto)
+    // Manejo de la fecha de cumpleaños
+    var fechaCumple *time.Time
+    fechaStr := r.Form.Get("fecha_cumpleanios")
+    if fechaStr != "" {
+        t, _ := time.Parse("2006-01-02", fechaStr)
+        fechaCumple = &t
+    }
+
+    nuevoContacto := models.Contacto{
+        Nombre:           r.Form.Get("nombre"),
+        Email:            r.Form.Get("email"),
+        Telefono:         r.Form.Get("telefono"),
+        TipoRelacion:     r.Form.Get("tipo_relacion"),
+        Expediente:       r.Form.Get("expediente"),
+        Juzgado:          r.Form.Get("juzgado"),
+        Notas:            r.Form.Get("notas"),
+        RecomendadoPor:   r.Form.Get("recomendado_por"), // Nuevo
+        FechaCumpleanios: fechaCumple,                   // Nuevo
+    }
+
+    result := m.DB.Create(&nuevoContacto)
+    if result.Error != nil {
+        log.Println("Error al crear:", result.Error)
+        return
+    }
+
     http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -95,28 +114,35 @@ func (m *Repository) EditarContacto(w http.ResponseWriter, r *http.Request) {
 
 // PostEditarContacto procesa el formulario de edición y actualiza el contacto
 func (m *Repository) PostEditarContacto(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.Atoi(idStr)
+    idStr := chi.URLParam(r, "id")
+    id, _ := strconv.Atoi(idStr)
 
-	var contacto models.Contacto
-	m.DB.First(&contacto, id)
+    var contacto models.Contacto
+    m.DB.First(&contacto, id)
 
-	r.ParseForm()
-	contacto.Nombre = r.Form.Get("nombre")
-	contacto.Expediente = r.Form.Get("expediente")
-	contacto.Telefono = r.Form.Get("telefono")
-	contacto.RecomendadoPor = r.Form.Get("recomendado_por")
-	contacto.Notas = r.Form.Get("notas")
+    r.ParseForm()
     
-    // Manejo de fecha opcional
+    // Actualizamos TODOS los campos
+    contacto.Nombre = r.Form.Get("nombre")
+    contacto.Email = r.Form.Get("email")
+    contacto.Telefono = r.Form.Get("telefono")
+    contacto.Expediente = r.Form.Get("expediente")
+    contacto.Juzgado = r.Form.Get("juzgado")
+    contacto.TipoRelacion = r.Form.Get("tipo_relacion")
+    contacto.RecomendadoPor = r.Form.Get("recomendado_por")
+    contacto.Notas = r.Form.Get("notas")
+
+    // Fecha de cumpleaños
     fechaStr := r.Form.Get("fecha_cumpleanios")
     if fechaStr != "" {
         t, _ := time.Parse("2006-01-02", fechaStr)
         contacto.FechaCumpleanios = &t
+    } else {
+        contacto.FechaCumpleanios = nil
     }
 
-	m.DB.Save(&contacto) // Guarda los cambios
-	http.Redirect(w, r, "/expediente/"+idStr, http.StatusSeeOther)
+    m.DB.Save(&contacto)
+    http.Redirect(w, r, "/expediente/"+idStr, http.StatusSeeOther)
 }
 
 // EliminarContacto elimina un contacto por su ID
