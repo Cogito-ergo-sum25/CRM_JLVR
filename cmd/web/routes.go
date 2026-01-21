@@ -28,6 +28,10 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Post("/expediente/{id}/cobro/{cobroID}/editar", handlers.Repo.PostEditarCobro)
 	mux.Get("/expediente/{id}/cobro/{cobroID}/eliminar", handlers.Repo.EliminarCobro)
 
+
+	mux.Get("/calendario", handlers.Repo.Calendario)
+	mux.Get("/api/eventos-calendario", handlers.Repo.EventosCalendario)
+
 	// Servir archivos estáticos (CSS/JS)
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))

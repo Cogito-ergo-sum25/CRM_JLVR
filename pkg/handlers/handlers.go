@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -339,5 +341,40 @@ func (m *Repository) EliminarCobro(w http.ResponseWriter, r *http.Request) {
 
     // Redirigir de vuelta al detalle del expediente
     http.Redirect(w, r, "/expediente/"+contactoIDStr, http.StatusSeeOther)
+}
+
+func (m *Repository) EventosCalendario(w http.ResponseWriter, r *http.Request) {
+    var contactos []models.Contacto
+    m.DB.Where("fecha_cumpleanios IS NOT NULL").Find(&contactos)
+
+    type Event struct {
+        Title string `json:"title"`
+        Start string `json:"start"`
+        AllDay bool  `json:"allDay"`
+        Color string `json:"color"`
+    }
+
+    var eventos []Event
+    anioActual := time.Now().Year()
+
+    for _, c := range contactos {
+        // Ajustamos el cumpleaños al año actual para que aparezca en el calendario
+        fecha := c.FechaCumpleanios.Format("01-02")
+        eventos = append(eventos, Event{
+            Title:  "🎂 " + c.Nombre,
+            Start:  fmt.Sprintf("%d-%s", anioActual, fecha),
+            AllDay: true,
+            Color:  "#ec4899", // Rosa para cumpleaños
+        })
+    }
+
+    out, _ := json.Marshal(eventos)
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(out)
+}
+
+// Handler para renderizar la página
+func (m *Repository) Calendario(w http.ResponseWriter, r *http.Request) {
+    render.RenderTemplate(w, "calendario.page.tmpl", &models.TemplateData{})
 }
 
