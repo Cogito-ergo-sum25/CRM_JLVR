@@ -195,3 +195,65 @@ func (m *Repository) PostNuevoFamiliar(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/expediente/"+idStr, http.StatusSeeOther)
 }
 
+func (m *Repository) PostNuevoCobro(w http.ResponseWriter, r *http.Request) {
+    idStr := chi.URLParam(r, "id")
+    contactoID, _ := strconv.Atoi(idStr)
+
+    err := r.ParseForm()
+    if err != nil {
+        log.Println(err)
+        return
+    }
+
+    cantidad, _ := strconv.ParseFloat(r.Form.Get("cantidad"), 64)
+    fechaStr := r.Form.Get("fecha")
+    fecha, err := time.Parse("2006-01-02", fechaStr)
+	if err != nil {
+		// Si hay error, podrías usar la fecha actual como respaldo o avisar al usuario
+		fecha = time.Now() 
+	}
+
+    cobro := models.Nomina{
+        ContactoID: uint(contactoID),
+        Cantidad:   cantidad,
+        Fecha:      fecha,
+        Motivo:     r.Form.Get("motivo"),
+    }
+
+    m.DB.Create(&cobro)
+
+    http.Redirect(w, r, "/expediente/"+idStr, http.StatusSeeOther)
+}
+
+func (m *Repository) PostEditarCobro(w http.ResponseWriter, r *http.Request) {
+    contactoID := chi.URLParam(r, "id")
+    cobroID := chi.URLParam(r, "cobroID")
+
+    r.ParseForm()
+    cantidad, _ := strconv.ParseFloat(r.Form.Get("cantidad"), 64)
+    fecha, _ := time.Parse("2006-01-02", r.Form.Get("fecha"))
+
+    // Actualizar directamente en la DB buscando por ID del cobro
+    m.DB.Model(&models.Nomina{}).Where("id = ?", cobroID).Updates(models.Nomina{
+        Cantidad: cantidad,
+        Fecha:    fecha,
+        Motivo:   r.Form.Get("motivo"),
+    })
+
+    http.Redirect(w, r, "/expediente/"+contactoID, http.StatusSeeOther)
+}
+
+func (m *Repository) EliminarCobro(w http.ResponseWriter, r *http.Request) {
+    // Necesitamos el ID del cobro
+    cobroIDStr := chi.URLParam(r, "cobroID")
+    contactoIDStr := chi.URLParam(r, "id")
+    
+    id, _ := strconv.Atoi(cobroIDStr)
+
+    // Borrado físico o lógico dependiendo de si usas gorm.Model en Nomina
+    m.DB.Delete(&models.Nomina{}, id)
+
+    // Redirigir de vuelta al detalle del expediente
+    http.Redirect(w, r, "/expediente/"+contactoIDStr, http.StatusSeeOther)
+}
+

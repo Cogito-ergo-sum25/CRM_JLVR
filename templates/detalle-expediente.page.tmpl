@@ -77,8 +77,9 @@
             <div class="bg-white rounded-xl shadow overflow-hidden">
                 <div class="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
                     <h3 class="font-bold text-gray-700">Historial de Honorarios y Pagos</h3>
-                    <button class="bg-indigo-600 text-white text-sm px-3 py-2 rounded-md hover:bg-indigo-700">
-                        Registrar Nuevo Pago
+                    <button onclick="limpiarModalCobro(); toggleModalCobro()" 
+                            class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-md font-bold shadow-sm">
+                        + Registrar Cobro
                     </button>
                 </div>
                 <table class="w-full text-sm text-left">
@@ -87,7 +88,7 @@
                             <th class="px-6 py-3">Fecha</th>
                             <th class="px-6 py-3">Concepto / Motivo</th>
                             <th class="px-6 py-3 text-right">Cantidad</th>
-                        </tr>
+                            <th class="px-6 py-3 text-center">Acciones</th> </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         {{range $res.Nominas}}
@@ -95,10 +96,23 @@
                             <td class="px-6 py-4">{{.Fecha.Format "02/01/2006"}}</td>
                             <td class="px-6 py-4">{{.Motivo}}</td>
                             <td class="px-6 py-4 text-right font-bold text-gray-800">${{.Cantidad}}</td>
-                        </tr>
-                        {{else}}
-                        <tr>
-                            <td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">No se han registrado abonos aún.</td>
+                            <td class="px-6 py-4 text-center space-x-3">
+                                <button 
+                                    onclick="prepararEdicionCobro(this)"
+                                    data-id="{{.ID}}"
+                                    data-cantidad="{{.Cantidad}}"
+                                    data-fecha="{{.Fecha.Format "2006-01-02"}}"
+                                    data-motivo="{{.Motivo}}"
+                                    class="text-blue-500 hover:text-blue-700 transition" title="Editar pago">
+                                    ✏️
+                                </button>
+                                
+                                <button 
+                                    onclick="confirmarEliminarCobro('{{.ID}}', '{{$res.ID}}')" 
+                                    class="text-red-500 hover:text-red-700 transition">
+                                    🗑️
+                                </button>
+                            </td>
                         </tr>
                         {{end}}
                     </tbody>
@@ -161,6 +175,42 @@
     </div>
 </div>
 
+<div id="modalCobro" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Registrar Cobro / Abono</h3>
+                <button onclick="toggleModalCobro()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            
+            <form action="/expediente/{{$res.ID}}/cobro" method="POST" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cantidad ($)</label>
+                        <input type="number" step="0.01" name="cantidad" placeholder="0.00" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2 border focus:ring-emerald-500 focus:border-emerald-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Fecha del Pago</label>
+                        <input type="date" 
+                            name="fecha" 
+                            class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2 border focus:ring-emerald-500 focus:border-emerald-500" 
+                            required>
+                        <p class="text-[10px] text-gray-400 mt-1">* Selecciona el día que se recibió el dinero.</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Concepto / Motivo</label>
+                    <input type="text" name="motivo" placeholder="Ej: Adelanto para copias, Honorarios Junio..." class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2 border" required>
+                </div>
+                <div class="pt-4 flex space-x-3">
+                    <button type="button" onclick="toggleModalCobro()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg font-bold hover:bg-emerald-700 transition">Registrar Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function confirmarEliminar(id) {
     Swal.fire({
@@ -180,8 +230,73 @@ function confirmarEliminar(id) {
     })
 }
 
+function prepararEdicionCobro(el) {
+    // Extraer datos de los data-attributes del botón
+    const id = el.getAttribute('data-id');
+    const cantidad = el.getAttribute('data-cantidad');
+    const fecha = el.getAttribute('data-fecha');
+    const motivo = el.getAttribute('data-motivo');
+
+    const modal = document.getElementById('modalCobro');
+    
+    // Cambiar visuales del modal
+    modal.querySelector('h3').innerText = "Editar Registro de Cobro";
+    const btnGuardar = modal.querySelector('button[type="submit"]');
+    btnGuardar.innerText = "Actualizar Cobro";
+    btnGuardar.classList.replace('bg-emerald-600', 'bg-blue-600');
+
+    // Llenar inputs
+    modal.querySelector('input[name="cantidad"]').value = cantidad;
+    modal.querySelector('input[name="fecha"]').value = fecha;
+    modal.querySelector('input[name="motivo"]').value = motivo;
+
+    // Cambiar el action del form
+    const contactoID = '{{$res.ID}}'; 
+    modal.querySelector('form').action = "/expediente/" + contactoID + "/cobro/" + id + "/editar";
+
+    toggleModalCobro();
+}
+
+// Opcional: Limpiar el modal cuando se cierra para que si le da a "Nuevo" no aparezcan datos viejos
+function limpiarModalCobro() {
+    const modal = document.getElementById('modalCobro');
+    modal.querySelector('h3').innerText = "Registrar Cobro / Abono";
+    modal.querySelector('form').reset();
+    modal.querySelector('form').action = "/expediente/{{$res.ID}}/cobro";
+    const btnGuardar = modal.querySelector('button[type="submit"]');
+    btnGuardar.innerText = "Registrar Pago";
+    btnGuardar.classList.replace('bg-blue-600', 'bg-emerald-600');
+}
+
+function confirmarEliminarCobro(cobroID, contactoID) {
+    Swal.fire({
+        title: '¿Eliminar este cobro?',
+        text: "El total cobrado se actualizará automáticamente.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "/expediente/" + contactoID + "/cobro/" + cobroID + "/eliminar";
+        }
+    })
+}
+
 function toggleModal() {
     const modal = document.getElementById('modalFamiliar');
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    } else {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+}
+
+function toggleModalCobro() {
+    const modal = document.getElementById('modalCobro');
     if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');

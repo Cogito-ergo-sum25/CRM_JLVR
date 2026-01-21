@@ -20,6 +20,10 @@ func routes(app *config.AppConfig) http.Handler {
 
 	mux.Post("/expediente/{id}/familiar", handlers.Repo.PostNuevoFamiliar)
 
+	mux.Post("/expediente/{id}/cobro", handlers.Repo.PostNuevoCobro)
+	mux.Post("/expediente/{id}/cobro/{cobroID}/editar", handlers.Repo.PostEditarCobro)
+	mux.Get("/expediente/{id}/cobro/{cobroID}/eliminar", handlers.Repo.EliminarCobro)
+
 	// Servir archivos estáticos (CSS/JS)
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
