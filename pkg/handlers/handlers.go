@@ -133,6 +133,45 @@ func (m *Repository) PostNuevoContacto(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func (m *Repository) PostFechaImportante(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	contactoID, _ := strconv.Atoi(idStr)
+
+	r.ParseForm()
+	
+	// Parsear la fecha del input type="date"
+	fecha, _ := time.Parse("2006-01-02", r.Form.Get("fecha"))
+	
+	// Validar el checkbox
+	recurrente := r.Form.Get("es_recurrente") == "on"
+
+	nuevaFecha := models.FechaImportante{
+		ContactoID:   uint(contactoID),
+		Etiqueta:     r.Form.Get("etiqueta"),
+		Fecha:        fecha,
+		EsRecurrente: recurrente,
+	}
+
+	m.DB.Create(&nuevaFecha)
+
+	http.Redirect(w, r, "/expediente/"+idStr, http.StatusSeeOther)
+}
+
+func (m *Repository) EliminarFechaImportante(w http.ResponseWriter, r *http.Request) {
+	// Obtenemos los IDs de la URL
+	contactoID := chi.URLParam(r, "id")
+	fechaID := chi.URLParam(r, "fechaID")
+
+	// Eliminamos el registro por su ID
+	err := m.DB.Delete(&models.FechaImportante{}, fechaID).Error
+	if err != nil {
+		log.Println("Error al eliminar fecha importante:", err)
+	}
+
+	// Redirigimos al detalle del expediente
+	http.Redirect(w, r, "/expediente/"+contactoID, http.StatusSeeOther)
+}
+
 // EditarContacto renderiza el formulario para editar un contacto existente
 func (m *Repository) EditarContacto(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
@@ -206,7 +245,7 @@ func (m *Repository) DetalleExpediente(w http.ResponseWriter, r *http.Request) {
     var contacto models.Contacto
     
     // Preload carga las relaciones definidas en el struct
-    result := m.DB.Preload("Nominas").Preload("Familiares").First(&contacto, id)
+    result := m.DB.Preload("FechasImportantes").Preload("Nominas").Preload("Familiares").First(&contacto, id)
     if result.Error != nil {
         http.Redirect(w, r, "/", http.StatusSeeOther)
         return
@@ -239,12 +278,20 @@ func (m *Repository) PostNuevoFamiliar(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    var fechaPtr *time.Time
+    fechaStr := r.Form.Get("fecha_cumpleanios")
+    if fechaStr != "" {
+        t, _ := time.Parse("2006-01-02", fechaStr)
+        fechaPtr = &t
+    }
+
     // 3. Crear el objeto con los datos
     familiar := models.Familiar{
         ContactoID: uint(contactoID),
         Nombre:     r.Form.Get("nombre"),
         Parentesco: r.Form.Get("parentesco"),
         Telefono:   r.Form.Get("telefono"),
+        FechaCumpleanios: fechaPtr, // Guardamos la fecha
     }
 
     // 4. Guardar en la base de datos
@@ -263,10 +310,19 @@ func (m *Repository) PostEditarFamiliar(w http.ResponseWriter, r *http.Request) 
     familiarID := chi.URLParam(r, "familiarID")
 
     r.ParseForm()
+
+    var fechaPtr *time.Time
+    fechaStr := r.Form.Get("fecha_cumpleanios")
+    if fechaStr != "" {
+        t, _ := time.Parse("2006-01-02", fechaStr)
+        fechaPtr = &t
+    }
+
     m.DB.Model(&models.Familiar{}).Where("id = ?", familiarID).Updates(models.Familiar{
         Nombre:     r.Form.Get("nombre"),
         Parentesco: r.Form.Get("parentesco"),
         Telefono:   r.Form.Get("telefono"),
+        FechaCumpleanios: fechaPtr,
     })
 
     http.Redirect(w, r, "/expediente/"+contactoID, http.StatusSeeOther)
@@ -345,30 +401,74 @@ func (m *Repository) EliminarCobro(w http.ResponseWriter, r *http.Request) {
 
 func (m *Repository) EventosCalendario(w http.ResponseWriter, r *http.Request) {
     var contactos []models.Contacto
-    m.DB.Where("fecha_cumpleanios IS NOT NULL").Find(&contactos)
+    var fechas []models.FechaImportante
+    var familiares []models.Familiar // NUEVO
+    
+    // Traemos todos los datos de la DB
+    m.DB.Find(&contactos)
+    m.DB.Find(&fechas)
+    m.DB.Find(&familiares)
 
     type Event struct {
         Title string `json:"title"`
         Start string `json:"start"`
-        AllDay bool  `json:"allDay"`
         Color string `json:"color"`
     }
 
     var eventos []Event
-    anioActual := time.Now().Year()
+    anio := time.Now().Year()
 
+    // 1. Cumpleaños del titular (Rosa)
     for _, c := range contactos {
-        // Ajustamos el cumpleaños al año actual para que aparezca en el calendario
-        fecha := c.FechaCumpleanios.Format("01-02")
+        if c.FechaCumpleanios != nil {
+            eventos = append(eventos, Event{
+                Title: "🎂 " + c.Nombre,
+                Start: fmt.Sprintf("%d-%s", anio, c.FechaCumpleanios.Format("01-02")),
+                Color: "#ec4899", // Rosa
+            })
+        }
+    }
+
+    // 2. Fechas Importantes (Púrpura o Ámbar)
+    for _, f := range fechas {
+        // Buscamos el contacto dueño de esta fecha para mostrar su nombre
+        var contacto models.Contacto
+        m.DB.First(&contacto, f.ContactoID)
+
+        // Manejo del color (sustituyendo el operador ternario)
+        colorEvento := "#f59e0b" // Ámbar (evento único)
+        if f.EsRecurrente {
+            colorEvento = "#8b5cf6" // Púrpura (anual)
+        }
+
         eventos = append(eventos, Event{
-            Title:  "🎂 " + c.Nombre,
-            Start:  fmt.Sprintf("%d-%s", anioActual, fecha),
-            AllDay: true,
-            Color:  "#ec4899", // Rosa para cumpleaños
+            Title: fmt.Sprintf("⭐ %s (%s)", f.Etiqueta, contacto.Nombre),
+            Start: fmt.Sprintf("%d-%s", anio, f.Fecha.Format("01-02")),
+            Color: colorEvento,
         })
     }
 
-    out, _ := json.Marshal(eventos)
+    for _, f := range familiares {
+        if f.FechaCumpleanios != nil {
+            // Buscamos al cliente titular para saber de quién es familiar
+            var titular models.Contacto
+            m.DB.First(&titular, f.ContactoID)
+
+            eventos = append(eventos, Event{
+                Title: fmt.Sprintf("🎂 %s (%s de %s)", f.Nombre, f.Parentesco, titular.Nombre),
+                Start: fmt.Sprintf("%d-%s", anio, f.FechaCumpleanios.Format("01-02")),
+                Color: "#10b981", // Un verde esmeralda para diferenciar familiares
+            })
+        }
+    }
+
+    // Enviamos el JSON al frontend
+    out, err := json.Marshal(eventos)
+    if err != nil {
+        log.Println("Error al convertir a JSON:", err)
+        return
+    }
+    
     w.Header().Set("Content-Type", "application/json")
     w.Write(out)
 }

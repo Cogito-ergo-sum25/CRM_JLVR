@@ -38,3 +38,16 @@ CREATE TABLE IF NOT EXISTS familiares (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP
 );
+
+-- 4. Tabla de Fechas Importantes (Relacionada a Contactos)
+CREATE TABLE IF NOT EXISTS fechas_importantes (
+    id SERIAL PRIMARY KEY,
+    contacto_id INTEGER REFERENCES contactos(id) ON DELETE CASCADE,
+    etiqueta VARCHAR(255) NOT NULL, -- Ej: 'Aniversario de Bodas', 'Día de la Madre'
+    fecha DATE NOT NULL,
+    es_recurrente BOOLEAN DEFAULT TRUE, -- TRUE para eventos anuales, FALSE para eventos únicos
+    notas TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);

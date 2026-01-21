@@ -18,10 +18,9 @@ type Contacto struct {
 	RecomendadoPor   string    `gorm:"size:255"`
 	Notas            string    `gorm:"type:text"`
 	
-	// ESTOS SON LOS CAMPOS QUE TE FALTAN:
-	// Nota: Deben empezar con Mayúscula para ser públicos
 	Nominas    []Nomina    `gorm:"foreignKey:ContactoID"`
 	Familiares []Familiar  `gorm:"foreignKey:ContactoID"`
+	FechasImportantes []FechaImportante `gorm:"foreignKey:ContactoID"`
 }
 
 // Nomina para el control de honorarios
@@ -40,4 +39,12 @@ type Familiar struct {
 	Nombre     string `gorm:"size:255"`
 	Parentesco string `gorm:"size:100"`
 	Telefono   string `gorm:"size:50"`
+	FechaCumpleanios *time.Time `json:"fecha_cumpleanios" gorm:"type:date"`
+}
+type FechaImportante struct {
+	ID           uint      `gorm:"primaryKey"`
+	ContactoID   uint      `gorm:"not null"`
+	Etiqueta     string    `gorm:"size:255;not null"`
+	Fecha        time.Time `gorm:"type:date;not null"`
+	EsRecurrente bool      `gorm:"default:true"`
 }

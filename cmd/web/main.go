@@ -18,7 +18,7 @@ func main() {
 		log.Fatal("Error al conectar:", err)
 	}
 
-	err = db.AutoMigrate(&models.Contacto{}, &models.Nomina{}, &models.Familiar{})
+	err = db.AutoMigrate(&models.Contacto{}, &models.Nomina{}, &models.Familiar{}, &models.FechaImportante{})
 	if err != nil {
 		log.Fatal("Error en migración:", err)
 	}

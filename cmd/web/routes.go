@@ -28,6 +28,8 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Post("/expediente/{id}/cobro/{cobroID}/editar", handlers.Repo.PostEditarCobro)
 	mux.Get("/expediente/{id}/cobro/{cobroID}/eliminar", handlers.Repo.EliminarCobro)
 
+	mux.Post("/expediente/{id}/fecha-importante", handlers.Repo.PostFechaImportante)
+	mux.Get("/expediente/{id}/fecha-importante/{fechaID}/eliminar", handlers.Repo.EliminarFechaImportante)
 
 	mux.Get("/calendario", handlers.Repo.Calendario)
 	mux.Get("/api/eventos-calendario", handlers.Repo.EventosCalendario)

@@ -92,6 +92,8 @@
                             <p class="font-bold text-gray-800 text-sm">{{.Nombre}}</p>
                             <p class="text-xs text-indigo-600 font-medium">{{.Parentesco}}</p>
                             <p class="text-xs text-gray-500 font-mono">{{.Telefono}}</p>
+                            <p class="text-xs text-gray-500 font-mono">{{.FechaCumpleanios.Format "01-02-2006"}}</p>
+
                         </div>
                         <div class="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onclick="prepararEdicionFamiliar(this)"
@@ -99,6 +101,7 @@
                                     data-nombre="{{.Nombre}}"
                                     data-parentesco="{{.Parentesco}}"
                                     data-telefono="{{.Telefono}}"
+                                    data-fecha="{{if .FechaCumpleanios}}{{.FechaCumpleanios.Format "2006-01-02"}}{{end}}"
                                     class="text-blue-500 hover:text-blue-700 p-1">
                                 ✏️
                             </button>
@@ -113,6 +116,38 @@
                     {{end}}
                 </div>
             </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-t-4 border-pink-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                        <span class="mr-2">✨</span> Fechas Especiales y Sociales
+                    </h3>
+                    <button onclick="toggleModalFecha()" class="text-xs bg-pink-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-pink-700 transition">
+                        + Agregar Fecha
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{range $res.FechasImportantes}}
+                    <div class="flex items-center justify-between p-3 bg-pink-50 rounded-lg border border-pink-100 group">
+                        <div class="flex items-center">
+                            <span class="text-xl mr-3">{{if .EsRecurrente}}🔄{{else}}📍{{end}}</span>
+                            <div>
+                                <p class="text-sm font-bold text-gray-800">{{.Etiqueta}}</p>
+                                <p class="text-xs text-pink-600 font-medium">{{.Fecha.Format "02 de January"}}</p>
+                            </div>
+                        </div>
+                        <button onclick="confirmarBorrado('{{.ID}}', '{{$res.ID}}', '{{.Etiqueta}}')" 
+                                class="text-red-400 hover:text-red-600 transition p-2">
+                            🗑️
+                        </button>
+                    </div>
+                    {{else}}
+                    <p class="col-span-2 text-center text-gray-400 text-xs italic py-4">No hay fechas importantes registradas.</p>
+                    {{end}}
+                </div>
+            </div>
+
         </div>
 
         <div class="lg:col-span-2 space-y-6">
@@ -200,12 +235,18 @@
                             <option value="Esposo(a)">Esposo(a)</option>
                             <option value="Hijo(a)">Hijo(a)</option>
                             <option value="Padre/Madre">Padre/Madre</option>
+                            <option value="Socio(a)">Abuelo(a)</option>
                             <option value="Socio(a)">Socio(a)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Teléfono</label>
                         <input type="text" name="telefono" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cumpleaños (Opcional)</label>
+                        <input type="date" name="fecha_cumpleanios" 
+                            class="mt-1 block w-full border-gray-300 rounded-lg p-2 border">
                     </div>
                 </div>
                 <div class="pt-4 flex space-x-3">
@@ -253,6 +294,36 @@
     </div>
 </div>
 
+<div id="modalFecha" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">📍 Nueva Fecha Importante</h3>
+        <form action="/expediente/{{$res.ID}}/fecha-importante" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Etiqueta</label>
+                <input type="text" name="etiqueta" placeholder="Ej: Aniversario de Bodas" 
+                       class="mt-1 block w-full border-gray-300 rounded-lg p-2 border focus:ring-indigo-500" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Fecha</label>
+                <input type="date" name="fecha" class="mt-1 block w-full border-gray-300 rounded-lg p-2 border" required>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" name="es_recurrente" id="es_recurrente" checked 
+                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                <label for="es_recurrente" class="ml-2 block text-sm text-gray-700 font-medium">
+                    Es un evento recurrente (Cada año)
+                </label>
+            </div>
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" onclick="toggleModalFecha()" class="text-gray-400 font-bold px-4 py-2">Cancelar</button>
+                <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 shadow-md transition">
+                    Guardar Fecha
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function confirmarEliminar(id) {
     Swal.fire({
@@ -268,6 +339,23 @@ function confirmarEliminar(id) {
         if (result.isConfirmed) {
             // Redirigir a la ruta de Go que creamos
             window.location.href = "/expediente/" + id + "/eliminar";
+        }
+    })
+}
+
+function confirmarBorrado(fechaID, contactoID, etiqueta) {
+    Swal.fire({
+        title: '¿Eliminar fecha?',
+        text: `Vas a borrar: ${etiqueta}`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, borrar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/expediente/${contactoID}/fecha-importante/${fechaID}/eliminar`;
         }
     })
 }
@@ -353,6 +441,7 @@ function prepararEdicionFamiliar(el) {
     const nombre = el.getAttribute('data-nombre');
     const parentesco = el.getAttribute('data-parentesco');
     const telefono = el.getAttribute('data-telefono');
+    const fecha = el.getAttribute('data-fecha');
 
     const modal = document.getElementById('modalFamiliar');
     modal.querySelector('h3').innerText = "Editar Familiar";
@@ -361,6 +450,7 @@ function prepararEdicionFamiliar(el) {
     modal.querySelector('input[name="nombre"]').value = nombre;
     modal.querySelector('select[name="parentesco"]').value = parentesco;
     modal.querySelector('input[name="telefono"]').value = telefono;
+    modal.querySelector('input[name="fecha_cumpleanios"]').value = fecha; 
 
     // Cambiar action a la ruta de editar
     const contactoID = '{{$res.ID}}';
@@ -392,6 +482,16 @@ function limpiarModalFamiliar() {
     modal.querySelector('form').action = "/expediente/{{$res.ID}}/familiar";
 }
 
+function toggleModalFecha() {
+    const m = document.getElementById('modalFecha');
+    m.classList.toggle('hidden');
+    m.classList.toggle('flex');
+}
+function confirmarEliminarFecha(id, contactoID) {
+    if(confirm('¿Eliminar esta fecha?')) {
+        window.location.href = `/expediente/${contactoID}/fecha-especial/${id}/eliminar`;
+    }
+}
 
 </script>
 {{end}}
