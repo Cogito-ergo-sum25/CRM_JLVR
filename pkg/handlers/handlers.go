@@ -59,6 +59,29 @@ func (m *Repository) NuevoContacto(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, "nuevo-contacto.page.tmpl", &models.TemplateData{})
 }
 
+func (m *Repository) ListaContactos(w http.ResponseWriter, r *http.Request) {
+    // 1. Obtener el término de búsqueda de la URL (ej: ?search=perez)
+    searchTerm := r.URL.Query().Get("search")
+    
+    var contactos []models.Contacto
+    
+    // 2. Lógica de filtrado con GORM
+    if searchTerm != "" {
+        // Busca coincidencias parciales en Nombre o Expediente
+        m.DB.Where("nombre ILIKE ? OR expediente ILIKE ?", "%"+searchTerm+"%", "%"+searchTerm+"%").Find(&contactos)
+    } else {
+        m.DB.Find(&contactos)
+    }
+
+    data := make(map[string]interface{})
+    data["contactos"] = contactos
+    data["searchTerm"] = searchTerm
+
+    render.RenderTemplate(w, "contactos.page.tmpl", &models.TemplateData{
+        Data: data,
+    })
+}
+
 // PostNuevoContacto procesa el formulario y guarda en Postgres
 func (m *Repository) PostNuevoContacto(w http.ResponseWriter, r *http.Request) {
     err := r.ParseForm()

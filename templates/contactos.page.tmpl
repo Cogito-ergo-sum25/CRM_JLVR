@@ -1,0 +1,78 @@
+{{template "base" .}}
+
+{{define "content"}}
+{{$contactos := index .Data "contactos"}}
+{{$search := index .Data "searchTerm"}}
+
+<div class="max-w-6xl mx-auto p-6">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">Directorio de Contactos</h2>
+            <p class="text-gray-500">Administra y busca en todos tus expedientes registrados.</p>
+        </div>
+        <a href="/nuevo-contacto" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-indigo-700 shadow-lg transition">
+            + Nuevo Contacto
+        </a>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100">
+        <form action="/contactos" method="GET" class="flex gap-2">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">🔍</span>
+                <input type="text" name="search" value="{{$search}}" 
+                       placeholder="Buscar por nombre o número de expediente..." 
+                       class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-900 transition">
+                Buscar
+            </button>
+            {{if $search}}
+                <a href="/contactos" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg flex items-center hover:bg-gray-200">
+                    Limpiar
+                </a>
+            {{end}}
+        </form>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs font-bold">
+                <tr>
+                    <th class="px-6 py-4">Nombre / Email</th>
+                    <th class="px-6 py-4">Expediente</th>
+                    <th class="px-6 py-4">Relación</th>
+                    <th class="px-6 py-4">Teléfono</th>
+                    <th class="px-6 py-4 text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {{range $contactos}}
+                <tr class="hover:bg-indigo-50 transition duration-150">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-800">{{.Nombre}}</div>
+                        <div class="text-xs text-gray-500">{{.Email}}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{.Expediente}}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase 
+                            {{if eq .TipoRelacion "Cliente"}} bg-green-100 text-green-700 {{else}} bg-gray-100 text-gray-600 {{end}}">
+                            {{.TipoRelacion}}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm font-mono text-gray-600">{{.Telefono}}</td>
+                    <td class="px-6 py-4 text-center">
+                        <a href="/expediente/{{.ID}}" class="text-indigo-600 hover:text-indigo-900 font-bold text-sm">Ver Detalle →</a>
+                    </td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-gray-400 italic">
+                        No se encontraron contactos que coincidan con la búsqueda.
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}

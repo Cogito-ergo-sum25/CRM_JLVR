@@ -12,6 +12,8 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Get("/", handlers.Repo.Home)
 	mux.Get("/nuevo-contacto", handlers.Repo.NuevoContacto)
 	mux.Post("/nuevo-contacto", handlers.Repo.PostNuevoContacto)
+
+	mux.Get("/contactos", handlers.Repo.ListaContactos)
 	
 	mux.Get("/expediente/{id}", handlers.Repo.DetalleExpediente)
 	mux.Get("/expediente/{id}/editar", handlers.Repo.EditarContacto)
