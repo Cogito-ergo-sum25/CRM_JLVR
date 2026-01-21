@@ -12,6 +12,13 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Get("/", handlers.Repo.Home)
 	mux.Get("/nuevo-contacto", handlers.Repo.NuevoContacto)
 	mux.Post("/nuevo-contacto", handlers.Repo.PostNuevoContacto)
+	
+	mux.Get("/expediente/{id}", handlers.Repo.DetalleExpediente)
+	mux.Get("/expediente/{id}/editar", handlers.Repo.EditarContacto)
+	mux.Post("/expediente/{id}/editar", handlers.Repo.PostEditarContacto)
+	mux.Get("/expediente/{id}/eliminar", handlers.Repo.EliminarContacto)
+
+	mux.Post("/expediente/{id}/familiar", handlers.Repo.PostNuevoFamiliar)
 
 	// Servir archivos estáticos (CSS/JS)
 	fileServer := http.FileServer(http.Dir("./static/"))

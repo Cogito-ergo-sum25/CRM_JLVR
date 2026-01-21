@@ -1,0 +1,195 @@
+{{template "base" .}}
+{{define "content"}}
+{{$res := index .Data "contacto"}}
+{{$total := index .Data "totalCobrado"}}
+
+<div class="max-w-6xl mx-auto p-4 md:p-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-t-4 border-indigo-600">
+    <div class="flex flex-col md:flex-row justify-between items-start">
+        <div class="flex-1">
+            <div class="flex items-center space-x-4 mb-2">
+                <h2 class="text-3xl font-bold text-gray-800">{{$res.Nombre}}</h2>
+                <a href="/expediente/{{$res.ID}}/editar" 
+                   class="flex items-center bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 px-3 py-1.5 rounded-lg text-sm font-semibold transition duration-200">
+                    <span class="mr-1">✏️</span> Editar
+                </a>
+            </div>
+            
+            <div class="flex flex-wrap gap-y-2 gap-x-4">
+                <span class="flex items-center text-indigo-600 font-medium bg-indigo-50 px-2 py-1 rounded-md text-sm">
+                    <span class="mr-1">📁</span> Exp: {{$res.Expediente}}
+                </span>
+                <span class="flex items-center text-gray-500 text-sm bg-gray-50 px-2 py-1 rounded-md">
+                    <span class="mr-1">🏛️</span> {{$res.Juzgado}}
+                </span>
+            </div>
+        </div>
+    
+
+        <div class="mt-6 md:mt-0 flex flex-col items-end">
+            <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl text-right min-w-[160px]">
+                <p class="text-[10px] text-emerald-700 font-black uppercase tracking-widest mb-1">Total Honorarios</p>
+                <div class="flex items-baseline justify-end text-emerald-600">
+                    <span class="text-lg font-bold mr-1">$</span>
+                    <span class="text-3xl font-black">{{$total}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl shadow p-5">
+                <h3 class="font-bold text-gray-700 border-b pb-2 mb-3">Información de Contacto</h3>
+                <p class="text-sm text-gray-600"><strong>Tel:</strong> {{$res.Telefono}}</p>
+                <p class="text-sm text-gray-600"><strong>Email:</strong> {{$res.Email}}</p>
+                <p class="text-sm text-gray-600"><strong>Referido por:</strong> {{$res.RecomendadoPor}}</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-5">
+                <div class="flex justify-between items-center border-b pb-2 mb-3">
+                    <h3 class="font-bold text-gray-700">Familiares</h3>
+                    <button onclick="toggleModal()" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md border border-indigo-100 hover:bg-indigo-100 transition font-bold">
+                        + Agregar Familiar
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    {{range $res.Familiares}}
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div>
+                            <p class="font-bold text-gray-800 text-sm">{{.Nombre}}</p>
+                            <p class="text-xs text-indigo-600 font-medium">{{.Parentesco}}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-gray-500 font-mono">{{.Telefono}}</p>
+                        </div>
+                    </div>
+                    {{else}}
+                    <p class="text-xs text-gray-400 italic text-center py-4">No hay familiares registrados aún.</p>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
+                    <h3 class="font-bold text-gray-700">Historial de Honorarios y Pagos</h3>
+                    <button class="bg-indigo-600 text-white text-sm px-3 py-2 rounded-md hover:bg-indigo-700">
+                        Registrar Nuevo Pago
+                    </button>
+                </div>
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                        <tr>
+                            <th class="px-6 py-3">Fecha</th>
+                            <th class="px-6 py-3">Concepto / Motivo</th>
+                            <th class="px-6 py-3 text-right">Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {{range $res.Nominas}}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">{{.Fecha.Format "02/01/2006"}}</td>
+                            <td class="px-6 py-4">{{.Motivo}}</td>
+                            <td class="px-6 py-4 text-right font-bold text-gray-800">${{.Cantidad}}</td>
+                        </tr>
+                        {{else}}
+                        <tr>
+                            <td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">No se han registrado abonos aún.</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-5">
+                <h3 class="font-bold text-gray-700 border-b pb-2 mb-3">Notas y Estrategia del Caso</h3>
+                <p class="text-gray-600 text-sm whitespace-pre-wrap">{{$res.Notas}}</p>
+            </div>
+
+            <div class="bg-red-50 rounded-xl shadow p-5 border border-red-100">
+                <h3 class="text-red-800 font-bold text-sm mb-3">Zona de Peligro</h3>
+                <p class="text-xs text-red-600 mb-4">Una vez eliminado, el expediente se moverá a la papelera y no aparecerá en las listas activas.</p>
+                
+                <button onclick="confirmarEliminar('{{$res.ID}}')" 
+                        class="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition duration-200 shadow-sm">
+                    🗑️ Eliminar Expediente
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<div id="modalFamiliar" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Agregar Familiar</h3>
+                <button onclick="toggleModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            
+            <form action="/expediente/{{$res.ID}}/familiar" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                    <input type="text" name="nombre" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Parentesco</label>
+                        <select name="parentesco" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2 border">
+                            <option value="Esposo(a)">Esposo(a)</option>
+                            <option value="Hijo(a)">Hijo(a)</option>
+                            <option value="Padre/Madre">Padre/Madre</option>
+                            <option value="Socio(a)">Socio(a)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Teléfono</label>
+                        <input type="text" name="telefono" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2 border">
+                    </div>
+                </div>
+                <div class="pt-4 flex space-x-3">
+                    <button type="button" onclick="toggleModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarEliminar(id) {
+    Swal.fire({
+        title: '¿Confirmas la eliminación?',
+        text: "El expediente dejará de estar visible, pero podrás recuperarlo después si es necesario.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626', // Rojo de Tailwind
+        cancelButtonColor: '#4f46e5',  // Indigo de Tailwind
+        confirmButtonText: 'Sí, eliminarlo',
+        cancelButtonText: 'No, cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Redirigir a la ruta de Go que creamos
+            window.location.href = "/expediente/" + id + "/eliminar";
+        }
+    })
+}
+
+function toggleModal() {
+    const modal = document.getElementById('modalFamiliar');
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    } else {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+}
+</script>
+
+{{end}}

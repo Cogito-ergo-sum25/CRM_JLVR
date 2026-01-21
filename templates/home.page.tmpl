@@ -45,8 +45,10 @@
                 <td class="px-5 py-5 border-b border-gray-200 text-sm">
                     <p class="font-bold text-indigo-600">{{.Expediente}}</p>
                 </td>
-                <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                    <p class="text-gray-900">{{.Nombre}}</p>
+                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <a href="/expediente/{{.ID}}" class="text-indigo-600 hover:text-indigo-900 font-bold underline">
+                        {{.Nombre}}
+                    </a>
                     <p class="text-gray-500 text-xs">{{.Email}}</p>
                 </td>
                 <td class="px-5 py-5 border-b border-gray-200 text-sm">

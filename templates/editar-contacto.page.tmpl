@@ -1,0 +1,49 @@
+{{template "base" .}}
+
+{{define "content"}}
+{{$res := index .Data "contacto"}}
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg border-t-4 border-yellow-500">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Editar Expediente: {{$res.Nombre}}</h2>
+    
+    <form action="/expediente/{{$res.ID}}/editar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700">Nombre Completo</label>
+            <input type="text" name="nombre" value="{{$res.Nombre}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" required>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Número de Expediente</label>
+            <input type="text" name="expediente" value="{{$res.Expediente}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Teléfono</label>
+            <input type="text" name="telefono" value="{{$res.Telefono}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Cumpleaños</label>
+            <input type="date" name="fecha_cumpleanios" 
+                   value="{{if $res.FechaCumpleanios}}{{$res.FechaCumpleanios.Format "2006-01-02"}}{{end}}" 
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Recomendado por</label>
+            <input type="text" name="recomendado_por" value="{{$res.RecomendadoPor}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+        </div>
+
+        <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700">Notas</label>
+            <textarea name="notas" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">{{$res.Notas}}</textarea>
+        </div>
+
+        <div class="md:col-span-2 flex justify-end space-x-3">
+            <a href="/expediente/{{$res.ID}}" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</a>
+            <button type="submit" class="bg-yellow-600 text-white font-bold py-2 px-6 rounded shadow-md hover:bg-yellow-700">
+                Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+{{end}}
